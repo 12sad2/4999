@@ -1,27 +1,111 @@
-
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>موقع أحمد</title>
+  <meta charset="UTF-8">
+  <title>موقع 497 Webhook</title>
   <style>
     body {
-      background-color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      font-family: Arial, sans-serif;
+      background-color: #ff4d4d; /* أحمر */
+      font-family: 'Arial', sans-serif;
+      color: white;
+      text-align: center;
+      padding: 50px;
     }
+
     h1 {
-      color: green;
-      font-size: 3rem;
+      color: #0099ff; /* أزرق */
+      font-size: 48px;
+    }
+
+    input, textarea {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      font-size: 18px;
+    }
+
+    button {
+      padding: 12px 25px;
+      font-size: 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    #startBtn {
+      background-color: #28a745; /* أخضر */
+      color: white;
+    }
+
+    #stopBtn {
+      background-color: #dc3545; /* أحمر */
+      color: white;
     }
   </style>
 </head>
 <body>
-  <h1>موقع أحمد</h1>
+
+  <h1>موقع 497 Webhook</h1>
+
+  <div>
+    <p>قم بوضع Webhook :</p>
+    <input type="text" id="webhookUrl" placeholder="رابط Webhook">
+
+    <p>قم بوضع الكلام :</p>
+    <textarea id="messageText" rows="5" placeholder="اكتب رسالتك هنا..."></textarea>
+
+    <br>
+    <button id="startBtn" onclick="startSending()">ابدأ الإرسال</button>
+    <button id="stopBtn" onclick="stopSending()">إيقاف الإرسال</button>
+  </div>
+
+  <script>
+    let intervalId = null;
+
+    function sendMessage() {
+      const url = document.getElementById("webhookUrl").value;
+      const content = document.getElementById("messageText").value + "\n-# حقوق 497";
+
+      if (!url || !content.trim()) {
+        console.log("الرابط أو الرسالة فارغة. لم يتم الإرسال.");
+        return;
+      }
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: content
+        })
+      }).then(response => {
+        if (response.ok) {
+          console.log("تم الإرسال بنجاح.");
+        } else {
+          console.warn("فشل في الإرسال.");
+        }
+      }).catch(error => {
+        console.error("خطأ في الإرسال:", error);
+      });
+    }
+
+    function startSending() {
+      if (intervalId) return; // لا تبدأ أكثر من مرة
+
+      sendMessage(); // أول رسالة مباشرة
+      intervalId = setInterval(sendMessage, 5000); // كل 5 ثواني
+    }
+
+    function stopSending() {
+      clearInterval(intervalId);
+      intervalId = null;
+      alert("تم إيقاف الإرسال التلقائي.");
+    }
+  </script>
+
 </body>
 </html>
