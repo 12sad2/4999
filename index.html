@@ -35,7 +35,7 @@
       margin: 10px;
     }
 
-    #startBtn {
+    #sendBtn {
       background-color: #28a745; /* أخضر */
       color: white;
     }
@@ -58,7 +58,7 @@
     <textarea id="messageText" rows="5" placeholder="اكتب رسالتك هنا..."></textarea>
 
     <br>
-    <button id="startBtn" onclick="startSending()">ابدأ الإرسال</button>
+    <button id="sendBtn" onclick="startSending()">إرسال</button>
     <button id="stopBtn" onclick="stopSending()">إيقاف الإرسال</button>
   </div>
 
@@ -69,41 +69,35 @@
       const url = document.getElementById("webhookUrl").value;
       const content = document.getElementById("messageText").value + "\n-# حقوق 497";
 
-      if (!url || !content.trim()) {
-        console.log("الرابط أو الرسالة فارغة. لم يتم الإرسال.");
-        return;
-      }
+      if (!url || !content.trim()) return;
 
       fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          content: content
-        })
+        body: JSON.stringify({ content })
       }).then(response => {
         if (response.ok) {
-          console.log("تم الإرسال بنجاح.");
+          console.log("تم الإرسال");
         } else {
-          console.warn("فشل في الإرسال.");
+          console.warn("فشل في الإرسال");
         }
       }).catch(error => {
-        console.error("خطأ في الإرسال:", error);
+        console.error("خطأ:", error);
       });
     }
 
     function startSending() {
-      if (intervalId) return; // لا تبدأ أكثر من مرة
-
-      sendMessage(); // أول رسالة مباشرة
-      intervalId = setInterval(sendMessage, 5000); // كل 5 ثواني
+      if (intervalId) return; // منع التكرار
+      sendMessage(); // أول رسالة
+      intervalId = setInterval(sendMessage, 100); // كل 0.1 ثانية
     }
 
     function stopSending() {
       clearInterval(intervalId);
       intervalId = null;
-      alert("تم إيقاف الإرسال التلقائي.");
+      alert("تم إيقاف الإرسال.");
     }
   </script>
 
