@@ -71,14 +71,14 @@
   <h1>موقع 497 Webhook</h1>
 
   <div>
-    <p>قم بوضع Webhook :</p>
-    <input type="text" id="webhookUrl" placeholder="رابط Webhook">
+    <p>قم بوضع Webhook (سطر لكل واحد):</p>
+    <textarea id="webhookUrls" rows="4" placeholder="رابط Webhook في كل سطر..."></textarea>
 
     <p>قم بوضع الكلام :</p>
     <textarea id="messageText" rows="5" placeholder="اكتب رسالتك هنا..."></textarea>
 
     <br>
-    <button id="sendOnceBtn" onclick="sendMessage()">إرسال رسالة</button>
+    <button id="sendOnceBtn" onclick="sendToAllWebhooks()">إرسال رسالة</button>
     <button id="autoSendBtn" class="red" onclick="toggleAutoSend()">الإرسال التلقائي</button>
   </div>
 
@@ -90,33 +90,38 @@
     let intervalId = null;
     let autoSending = false;
 
-    function sendMessage() {
-      const url = document.getElementById("webhookUrl").value;
+    function getWebhooks() {
+      const input = document.getElementById("webhookUrls").value;
+      return input.split("\n").map(link => link.trim()).filter(link => link.startsWith("http"));
+    }
+
+    function sendToAllWebhooks() {
+      const webhooks = getWebhooks();
       const content = document.getElementById("messageText").value + "\n-# حقوق 497";
 
-      if (!url || !content.trim()) return;
+      if (webhooks.length === 0 || !content.trim()) return;
 
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ content })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data && data.id && data.channel_id) {
-          const channelId = data.channel_id;
-          const messageId = data.id;
-          const messageLink = `https://discord.com/channels/@me/${channelId}/${messageId}`;
-          log(`✅ تم الإرسال إلى القناة: ${channelId}<br>🔗 <a href="${messageLink}" target="_blank">رابط الرسالة</a>`);
-        } else {
-          log("✅ تم الإرسال (بدون تفاصيل قناة)");
-        }
-      })
-      .catch(error => {
-        console.error("❌ خطأ:", error);
-        log("❌ فشل في الإرسال.");
+      webhooks.forEach(url => {
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.id && data.channel_id) {
+            const channelId = data.channel_id;
+            const messageId = data.id;
+            const messageLink = `https://discord.com/channels/@me/${channelId}/${messageId}`;
+            log(`✅ تم الإرسال إلى ${url}<br>🔗 <a href="${messageLink}" target="_blank">رابط الرسالة</a>`);
+          } else {
+            log(`✅ تم الإرسال إلى ${url}`);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          log(`❌ فشل الإرسال إلى ${url}`);
+        });
       });
     }
 
@@ -124,21 +129,19 @@
       const btn = document.getElementById("autoSendBtn");
 
       if (!autoSending) {
-        // بدء الإرسال
-        sendMessage(); // أول رسالة
-        intervalId = setInterval(sendMessage, 100);
+        sendToAllWebhooks(); // أول رسالة
+        intervalId = setInterval(sendToAllWebhooks, 100);
         btn.classList.remove("red");
         btn.classList.add("green");
-        autoSending = true;
         btn.textContent = "إيقاف الإرسال التلقائي";
+        autoSending = true;
       } else {
-        // إيقاف الإرسال
         clearInterval(intervalId);
         intervalId = null;
         btn.classList.remove("green");
         btn.classList.add("red");
-        autoSending = false;
         btn.textContent = "الإرسال التلقائي";
+        autoSending = false;
         log("🛑 تم إيقاف الإرسال التلقائي.");
       }
     }
