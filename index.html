@@ -5,7 +5,7 @@
   <title>موقع 497 Webhook</title>
   <style>
     body {
-      background-color: #ff4d4d; /* أحمر */
+      background-color: #ff4d4d;
       font-family: 'Arial', sans-serif;
       color: white;
       text-align: center;
@@ -13,7 +13,7 @@
     }
 
     h1 {
-      color: #0099ff; /* أزرق */
+      color: #0099ff;
       font-size: 48px;
     }
 
@@ -33,16 +33,36 @@
       border-radius: 10px;
       cursor: pointer;
       margin: 10px;
+      transition: 0.3s;
     }
 
-    #sendBtn {
+    #autoSendBtn.red {
+      background-color: #dc3545; /* أحمر */
+      color: white;
+    }
+
+    #autoSendBtn.green {
       background-color: #28a745; /* أخضر */
       color: white;
     }
 
-    #stopBtn {
-      background-color: #dc3545; /* أحمر */
+    #sendOnceBtn {
+      background-color: #28a745; /* أخضر */
       color: white;
+    }
+
+    #logBox {
+      margin-top: 30px;
+      background-color: #fff;
+      color: #000;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: left;
+      width: 80%;
+      margin-inline: auto;
+      max-height: 300px;
+      overflow-y: auto;
+      direction: ltr;
     }
   </style>
 </head>
@@ -58,12 +78,17 @@
     <textarea id="messageText" rows="5" placeholder="اكتب رسالتك هنا..."></textarea>
 
     <br>
-    <button id="sendBtn" onclick="startSending()">إرسال</button>
-    <button id="stopBtn" onclick="stopSending()">إيقاف الإرسال</button>
+    <button id="sendOnceBtn" onclick="sendMessage()">إرسال رسالة</button>
+    <button id="autoSendBtn" class="red" onclick="toggleAutoSend()">الإرسال التلقائي</button>
+  </div>
+
+  <div id="logBox">
+    <strong>سجل الإرسال:</strong><br>
   </div>
 
   <script>
     let intervalId = null;
+    let autoSending = false;
 
     function sendMessage() {
       const url = document.getElementById("webhookUrl").value;
@@ -77,27 +102,52 @@
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ content })
-      }).then(response => {
-        if (response.ok) {
-          console.log("تم الإرسال");
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.id && data.channel_id) {
+          const channelId = data.channel_id;
+          const messageId = data.id;
+          const messageLink = `https://discord.com/channels/@me/${channelId}/${messageId}`;
+          log(`✅ تم الإرسال إلى القناة: ${channelId}<br>🔗 <a href="${messageLink}" target="_blank">رابط الرسالة</a>`);
         } else {
-          console.warn("فشل في الإرسال");
+          log("✅ تم الإرسال (بدون تفاصيل قناة)");
         }
-      }).catch(error => {
-        console.error("خطأ:", error);
+      })
+      .catch(error => {
+        console.error("❌ خطأ:", error);
+        log("❌ فشل في الإرسال.");
       });
     }
 
-    function startSending() {
-      if (intervalId) return; // منع التكرار
-      sendMessage(); // أول رسالة
-      intervalId = setInterval(sendMessage, 100); // كل 0.1 ثانية
+    function toggleAutoSend() {
+      const btn = document.getElementById("autoSendBtn");
+
+      if (!autoSending) {
+        // بدء الإرسال
+        sendMessage(); // أول رسالة
+        intervalId = setInterval(sendMessage, 100);
+        btn.classList.remove("red");
+        btn.classList.add("green");
+        autoSending = true;
+        btn.textContent = "إيقاف الإرسال التلقائي";
+      } else {
+        // إيقاف الإرسال
+        clearInterval(intervalId);
+        intervalId = null;
+        btn.classList.remove("green");
+        btn.classList.add("red");
+        autoSending = false;
+        btn.textContent = "الإرسال التلقائي";
+        log("🛑 تم إيقاف الإرسال التلقائي.");
+      }
     }
 
-    function stopSending() {
-      clearInterval(intervalId);
-      intervalId = null;
-      alert("تم إيقاف الإرسال.");
+    function log(message) {
+      const logBox = document.getElementById("logBox");
+      const timestamp = new Date().toLocaleTimeString();
+      logBox.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+      logBox.scrollTop = logBox.scrollHeight;
     }
   </script>
 
